@@ -4,13 +4,14 @@
 
 ## ✨ Features
 
-- **🎨 Unified Theming**: Built-in support for `light`, `dark`, and `system` themes with synchronized CSS variables.
-- **📱 Collapsible Sidebar**: Responsive sidebar with pinned desktop mode, hover-overlay mode, and mobile drawer.
+- **🎨 Unified Theming & WCAG AAA Contrast**: Built-in support for `light`, `dark`, and `system` themes with synchronized semantic tokens (`--accent-fg`, `--danger-fg`, etc.) guaranteeing accessible text contrast across all button and surface variants.
+- **📱 Collapsible Sidebar**: Responsive sidebar with pinned desktop mode, mobile drawer, and automatic floating tooltips on collapsed icon hover.
 - **🔘 Versatile Buttons**: Full variant suite (`primary`, `secondary`, `outline`, `ghost`, `danger`, `warn`, `success`), sizes (`xs`, `sm`, `md`, `lg`), and built-in async loading states.
+- **🔔 Toast Notification System**: Built-in `useToast()` hook with floating alert viewport (`success`, `error`, `warn`, `info`) and auto-dismiss.
 - **💬 Action Modal**: Ready-to-use `prompt`, `confirm`, and destructive alert modals with ESC dismiss and backdrop blur.
-- **📊 Data Table**: Feature-complete table with sorting, instant search filtering, pagination, and empty states.
-- **🧩 Base Primitives**: Cards, Badges, Text Inputs, Textarea, Select, Tabs, Skeleton, and Loading Spinners.
-- **🚀 Vercel Deployable Demo**: Interactive preview page in `demo/` deployable with zero configuration to Vercel.
+- **📊 Enhanced Data Table**: Feature-complete table with status filter chips, multi-row checkbox selection, batch action bar, sorting, search, and pagination.
+- **🧩 Base Primitives**: Cards, Badges, Switch Toggles, Tooltips, Avatars, Dropdown Menus, Text Inputs, Textarea, Select, Tabs, Skeleton, and Loading Spinners.
+- **🚀 Vercel Deployable Demo**: Interactive preview page in `demo/` with live props playground and realistic dashboard deployable with zero configuration to Vercel.
 - **📦 Clean Package Distribution**: The published npm package only includes `dist/` — the preview app and demo source code are completely excluded.
 
 ---
@@ -32,20 +33,22 @@ Ensure `react` and `react-dom` (v18 or v19) are installed in your project.
 
 ## 🚀 Quick Start
 
-### 1. Import Styles & ThemeProvider
+### 1. Import Styles, ThemeProvider & ToastProvider
 
 In your application's root (e.g. Next.js `src/app/layout.tsx` or Vite `src/main.tsx`):
 
 ```tsx
 import "kaneki-components/styles.css";
-import { ThemeProvider } from "kaneki-components";
+import { ThemeProvider, ToastProvider } from "kaneki-components";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <ThemeProvider defaultTheme="system">
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
