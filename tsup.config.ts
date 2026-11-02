@@ -1,4 +1,4 @@
-import { copyFileSync } from "fs";
+import { execSync } from "child_process";
 import { defineConfig } from "tsup";
 
 export default defineConfig({
@@ -14,6 +14,8 @@ export default defineConfig({
   },
   external: ["react", "react-dom"],
   onSuccess: async () => {
-    copyFileSync("src/styles.css", "dist/index.css");
+    execSync("npx @tailwindcss/cli -i src/styles.css -o dist/index.css --minify", {
+      stdio: "inherit",
+    });
   },
 });

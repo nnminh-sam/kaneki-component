@@ -132,8 +132,8 @@ export function DataTable<T extends Record<string, any>>({
     <div className={`space-y-3 ${className}`}>
       {searchable && (
         <div className="flex items-center justify-between gap-4">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+          <div className="relative w-full max-w-sm flex items-center">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted shrink-0" />
             <input
               type="text"
               value={searchQuery}

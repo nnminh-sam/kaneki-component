@@ -3,7 +3,6 @@
 import {
   useState,
   type ComponentType,
-  type HTMLAttributes,
   type ReactNode,
 } from "react";
 import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
@@ -43,12 +42,10 @@ export interface CollapsibleSidebarProps {
   defaultMobileOpen?: boolean;
   /** Callback fired when mobile drawer open state changes */
   onMobileOpenChange?: (open: boolean) => void;
-  /** Desktop width class when expanded (default: "md:w-64") */
+  /** Desktop width class when expanded (default: "w-64") */
   expandedWidthClass?: string;
-  /** Desktop width class when collapsed (default: "md:w-18") */
+  /** Desktop width class when collapsed (default: "w-16") */
   collapsedWidthClass?: string;
-  /** When collapsed, temporarily expand as overlay while mouse hovers */
-  expandOnHover?: boolean;
   /** When true, sidebar is only used as a mobile drawer and hidden on desktop */
   mobileOnly?: boolean;
   /** Main scrollable body content */
@@ -83,9 +80,8 @@ export function CollapsibleSidebar({
   mobileOpen: controlledMobileOpen,
   defaultMobileOpen = false,
   onMobileOpenChange,
-  expandedWidthClass = "md:w-64",
-  collapsedWidthClass = "md:w-18",
-  expandOnHover = false,
+  expandedWidthClass = "w-64",
+  collapsedWidthClass = "w-16",
   mobileOnly = false,
   children,
   footer,
@@ -94,11 +90,8 @@ export function CollapsibleSidebar({
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
   const [internalMobileOpen, setInternalMobileOpen] =
     useState(defaultMobileOpen);
-  const [hovered, setHovered] = useState(false);
 
-  const pinnedCollapsed = controlledCollapsed ?? internalCollapsed;
-  const hoverExpanded = expandOnHover && pinnedCollapsed && hovered;
-  const isCollapsed = pinnedCollapsed && !hoverExpanded;
+  const isCollapsed = controlledCollapsed ?? internalCollapsed;
   const isMobileOpen = controlledMobileOpen ?? internalMobileOpen;
 
   const setCollapsed = (next: boolean) => {
@@ -127,7 +120,7 @@ export function CollapsibleSidebar({
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
         {icon}
       </span>
-      <div className="truncate">
+      <div className="truncate text-left">
         <p className="truncate text-sm font-semibold tracking-tight text-fg">
           {title}
         </p>
@@ -138,54 +131,35 @@ export function CollapsibleSidebar({
     </>
   );
 
-  const wrapperClass = mobileOnly
-    ? "md:hidden"
-    : expandOnHover
-    ? `md:relative md:h-full md:shrink-0 ${
-        pinnedCollapsed ? collapsedWidthClass : expandedWidthClass
-      }`
-    : "contents";
-
   const LinkElem = LinkComponent;
+  const widthClass = isCollapsed ? collapsedWidthClass : expandedWidthClass;
 
   return (
-    <div
-      className={wrapperClass}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <>
       {/* Mobile Backdrop */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs md:hidden"
           onClick={closeMobile}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Aside */}
       <aside
         aria-label={ariaLabel ?? title}
-        className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-border bg-surface transition-all duration-200 ${
-          mobileOnly
-            ? "md:hidden"
-            : expandOnHover
-            ? `md:absolute md:left-0 md:top-0 md:h-full ${
-                hoverExpanded ? "md:z-30 md:shadow-xl" : "md:z-10"
-              }`
-            : "md:static md:z-auto"
-        } ${
-          isCollapsed ? collapsedWidthClass : expandedWidthClass
+        className={`fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col border-r border-border bg-surface transition-all duration-200 md:static md:z-auto ${
+          mobileOnly ? "md:hidden" : ""
         } ${
           isMobileOpen
-            ? "w-72 sm:w-80 translate-x-0"
+            ? "w-72 sm:w-80 translate-x-0 shadow-2xl md:shadow-none"
             : "-translate-x-full md:translate-x-0"
-        } ${className}`}
+        } md:${widthClass} ${className}`}
       >
         {/* Brand / Header */}
         <div
           className={`flex h-14 shrink-0 items-center justify-between border-b border-border px-3.5 ${
-            isCollapsed ? "md:justify-center" : ""
+            isCollapsed ? "justify-center" : ""
           }`}
         >
           {!isCollapsed &&
@@ -203,6 +177,7 @@ export function CollapsibleSidebar({
               </div>
             ))}
 
+          {/* Desktop Toggle Button */}
           {isCollapsed ? (
             <button
               type="button"
@@ -216,19 +191,6 @@ export function CollapsibleSidebar({
               </span>
               <PanelLeftOpen className="hidden h-4 w-4 group-hover:block" />
             </button>
-          ) : hoverExpanded ? (
-            <button
-              type="button"
-              onClick={() => {
-                setCollapsed(false);
-                setHovered(false);
-              }}
-              title="Expand sidebar"
-              aria-label="Expand sidebar"
-              className="hidden rounded-lg p-1.5 text-muted hover:bg-surface-subtle hover:text-fg md:inline-flex cursor-pointer"
-            >
-              <PanelLeftOpen className="h-4 w-4" />
-            </button>
           ) : (
             <button
               type="button"
@@ -241,6 +203,7 @@ export function CollapsibleSidebar({
             </button>
           )}
 
+          {/* Mobile Close Button */}
           <button
             type="button"
             onClick={closeMobile}
@@ -263,6 +226,6 @@ export function CollapsibleSidebar({
           </div>
         )}
       </aside>
-    </div>
+    </>
   );
 }
