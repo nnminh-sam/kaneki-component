@@ -21,11 +21,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   fullWidth?: boolean;
+  /** When true, forces the legacy white text (useful for demo contrast comparisons) */
+  legacyContrast?: boolean;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-accent text-white hover:brightness-110 active:scale-[0.98] shadow-xs disabled:opacity-50",
+    "bg-accent text-accent-fg font-semibold hover:brightness-105 active:scale-[0.98] shadow-xs disabled:opacity-50",
   secondary:
     "bg-surface-subtle text-fg border border-border hover:bg-surface hover:border-accent active:scale-[0.98] disabled:opacity-50",
   outline:
@@ -33,11 +35,18 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost:
     "bg-transparent text-fg hover:bg-surface-subtle active:scale-[0.98] disabled:opacity-50",
   danger:
-    "bg-danger text-white hover:brightness-110 active:scale-[0.98] shadow-xs disabled:opacity-50",
+    "bg-danger text-danger-fg font-semibold hover:brightness-105 active:scale-[0.98] shadow-xs disabled:opacity-50",
   warn:
-    "bg-warn text-white hover:brightness-110 active:scale-[0.98] shadow-xs disabled:opacity-50",
+    "bg-warn text-warn-fg font-semibold hover:brightness-105 active:scale-[0.98] shadow-xs disabled:opacity-50",
   success:
-    "bg-ok text-white hover:brightness-110 active:scale-[0.98] shadow-xs disabled:opacity-50",
+    "bg-ok text-ok-fg font-semibold hover:brightness-105 active:scale-[0.98] shadow-xs disabled:opacity-50",
+};
+
+const legacyClasses: Partial<Record<ButtonVariant, string>> = {
+  primary: "bg-accent text-white",
+  danger: "bg-danger text-white",
+  warn: "bg-warn text-white",
+  success: "bg-ok text-white",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -57,6 +66,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon,
       rightIcon,
       fullWidth = false,
+      legacyContrast = false,
       className = "",
       children,
       ...props
@@ -64,14 +74,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const isDisabled = disabled || isLoading;
+    const styleClass =
+      legacyContrast && legacyClasses[variant]
+        ? `${legacyClasses[variant]} font-medium hover:brightness-110 active:scale-[0.98] shadow-xs disabled:opacity-50`
+        : variantClasses[variant];
 
     return (
       <button
         ref={ref}
         disabled={isDisabled}
-        className={`inline-flex items-center justify-center font-medium transition-all duration-150 cursor-pointer disabled:cursor-not-allowed select-none ${
-          variantClasses[variant]
-        } ${sizeClasses[size]} ${fullWidth ? "w-full" : ""} ${className}`}
+        className={`inline-flex items-center justify-center transition-all duration-150 cursor-pointer disabled:cursor-not-allowed select-none ${styleClass} ${sizeClasses[size]} ${
+          fullWidth ? "w-full" : ""
+        } ${className}`}
         {...props}
       >
         {isLoading ? (

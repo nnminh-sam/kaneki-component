@@ -7,8 +7,10 @@ import {
   ChevronRight,
   ChevronsUpDown,
   ChevronUp,
+  Download,
   Inbox,
   Search,
+  Trash2,
 } from "lucide-react";
 import { Button } from "../button/button";
 import { Skeleton } from "../feedback/ui";
@@ -31,12 +33,22 @@ export interface DataTableColumn<T> {
   sortFn?: (a: T, b: T) => number;
 }
 
+export interface DataTableFilterOption {
+  label: string;
+  value: string;
+  count?: number;
+}
+
 export interface DataTableProps<T> {
   data: T[];
   columns: DataTableColumn<T>[];
   searchable?: boolean;
   searchPlaceholder?: string;
   searchFilter?: (item: T, query: string) => boolean;
+  filterKey?: keyof T;
+  filterOptions?: DataTableFilterOption[];
+  selectable?: boolean;
+  onSelectionChange?: (selectedRows: T[]) => void;
   pageSize?: number;
   emptyMessage?: ReactNode;
   loading?: boolean;
@@ -52,6 +64,10 @@ export function DataTable<T extends Record<string, any>>({
   searchable = true,
   searchPlaceholder = "Search...",
   searchFilter,
+  filterKey,
+  filterOptions,
+  selectable = false,
+  onSelectionChange,
   pageSize = 10,
   emptyMessage = "No items found.",
   loading = false,
@@ -59,16 +75,24 @@ export function DataTable<T extends Record<string, any>>({
   className = "",
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Filtered data
+  // Filter by category/status chip
+  const filteredByChip = useMemo(() => {
+    if (!filterKey || selectedFilter === "ALL") return data;
+    return data.filter((item) => String(item[filterKey]) === selectedFilter);
+  }, [data, filterKey, selectedFilter]);
+
+  // Filtered by search query
   const filteredData = useMemo(() => {
-    if (!searchQuery.trim()) return data;
+    if (!searchQuery.trim()) return filteredByChip;
     const query = searchQuery.toLowerCase().trim();
 
-    return data.filter((item) => {
+    return filteredByChip.filter((item) => {
       if (searchFilter) {
         return searchFilter(item, query);
       }
@@ -77,7 +101,7 @@ export function DataTable<T extends Record<string, any>>({
         return String(val).toLowerCase().includes(query);
       });
     });
-  }, [data, searchQuery, searchFilter]);
+  }, [filteredByChip, searchQuery, searchFilter]);
 
   // Sorted data
   const sortedData = useMemo(() => {
@@ -128,12 +152,79 @@ export function DataTable<T extends Record<string, any>>({
     return "text-left";
   };
 
+  // Selection handlers
+  const toggleRowSelect = (id: string, row: T) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+
+    const selectedRows = data.filter((item) => next.has(item.id ?? item.key));
+    onSelectionChange?.(selectedRows);
+  };
+
+  const toggleSelectAll = () => {
+    const next = new Set<string>();
+    if (selectedIds.size < paginatedData.length) {
+      paginatedData.forEach((item) => next.add(item.id ?? item.key));
+    }
+    setSelectedIds(next);
+    const selectedRows = data.filter((item) => next.has(item.id ?? item.key));
+    onSelectionChange?.(selectedRows);
+  };
+
+  const allOnPageSelected =
+    paginatedData.length > 0 &&
+    paginatedData.every((item) => selectedIds.has(item.id ?? item.key));
+
   return (
     <div className={`space-y-3 ${className}`}>
-      {searchable && (
-        <div className="flex items-center justify-between gap-4">
-          <div className="relative w-full max-w-sm flex items-center">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted shrink-0" />
+      {/* Top Filter & Search Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Filter Chips */}
+        {filterOptions && filterOptions.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedFilter("ALL");
+                setCurrentPage(1);
+              }}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                selectedFilter === "ALL"
+                  ? "bg-accent text-accent-fg font-semibold shadow-xs"
+                  : "bg-surface-subtle text-muted hover:text-fg"
+              }`}
+            >
+              All ({data.length})
+            </button>
+            {filterOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  setSelectedFilter(opt.value);
+                  setCurrentPage(1);
+                }}
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                  selectedFilter === opt.value
+                    ? "bg-accent text-accent-fg font-semibold shadow-xs"
+                    : "bg-surface-subtle text-muted hover:text-fg"
+                }`}
+              >
+                {opt.label}
+                {opt.count !== undefined && (
+                  <span className="ml-1 opacity-70">({opt.count})</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Search Input */}
+        {searchable && (
+          <div className="relative w-full sm:w-72 flex items-center">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted shrink-0" />
             <input
               type="text"
               value={searchQuery}
@@ -142,18 +233,58 @@ export function DataTable<T extends Record<string, any>>({
                 setCurrentPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="w-full rounded-lg border border-border bg-surface pl-9 pr-3 py-1.5 text-xs text-fg placeholder:text-muted focus:border-accent focus:outline-none transition-colors"
+              className="w-full rounded-lg border border-border bg-surface pl-8 pr-3 py-1.5 text-xs text-fg placeholder:text-muted focus:border-accent focus:outline-none transition-colors"
             />
           </div>
-          <div className="text-xs text-muted shrink-0">
-            {sortedData.length} {sortedData.length === 1 ? "item" : "items"}
+        )}
+      </div>
+
+      {/* Floating Selection Bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent-soft px-4 py-2 text-xs text-accent animate-in fade-in duration-150">
+          <span className="font-semibold">
+            {selectedIds.size} {selectedIds.size === 1 ? "item" : "items"} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="xs"
+              leftIcon={<Download className="h-3 w-3" />}
+              onClick={() => alert(`Exporting ${selectedIds.size} items`)}
+            >
+              Export
+            </Button>
+            <Button
+              variant="danger"
+              size="xs"
+              leftIcon={<Trash2 className="h-3 w-3" />}
+              onClick={() => {
+                alert(`Deleted ${selectedIds.size} items`);
+                setSelectedIds(new Set());
+              }}
+            >
+              Delete
+            </Button>
           </div>
         </div>
       )}
 
+      {/* Table Primitives */}
       <Table>
         <TableHeader>
           <TableRow>
+            {selectable && (
+              <TableHead className="w-10 text-center">
+                <input
+                  type="checkbox"
+                  checked={allOnPageSelected}
+                  onChange={toggleSelectAll}
+                  className="rounded border-border text-accent focus:ring-accent cursor-pointer"
+                  aria-label="Select all rows on page"
+                />
+              </TableHead>
+            )}
+
             {columns.map((col) => {
               const isSorted = sortKey === col.key;
               return (
@@ -192,6 +323,11 @@ export function DataTable<T extends Record<string, any>>({
           {loading ? (
             Array.from({ length: 5 }).map((_, idx) => (
               <TableRow key={idx}>
+                {selectable && (
+                  <TableCell className="text-center">
+                    <Skeleton className="h-4 w-4 mx-auto rounded" />
+                  </TableCell>
+                )}
                 {columns.map((col) => (
                   <TableCell key={col.key} className={alignClass(col.align)}>
                     <Skeleton className="h-4 w-full max-w-[120px]" />
@@ -202,7 +338,7 @@ export function DataTable<T extends Record<string, any>>({
           ) : paginatedData.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={columns.length}
+                colSpan={columns.length + (selectable ? 1 : 0)}
                 className="py-12 text-center text-muted"
               >
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -212,21 +348,43 @@ export function DataTable<T extends Record<string, any>>({
               </TableCell>
             </TableRow>
           ) : (
-            paginatedData.map((row, idx) => (
-              <TableRow
-                key={row.id ?? idx}
-                onClick={() => onRowClick?.(row)}
-                className={onRowClick ? "cursor-pointer hover:bg-surface-subtle" : ""}
-              >
-                {columns.map((col) => (
-                  <TableCell key={col.key} className={alignClass(col.align)}>
-                    {col.render
-                      ? col.render(row, (page - 1) * pageSize + idx)
-                      : row[col.key]}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+            paginatedData.map((row, idx) => {
+              const rowId = row.id ?? row.key ?? String(idx);
+              const isSelected = selectedIds.has(rowId);
+
+              return (
+                <TableRow
+                  key={rowId}
+                  onClick={() => onRowClick?.(row)}
+                  className={`${isSelected ? "bg-accent-soft/30" : ""} ${
+                    onRowClick ? "cursor-pointer hover:bg-surface-subtle" : ""
+                  }`}
+                >
+                  {selectable && (
+                    <TableCell
+                      className="text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleRowSelect(rowId, row)}
+                        className="rounded border-border text-accent focus:ring-accent cursor-pointer"
+                        aria-label={`Select row ${rowId}`}
+                      />
+                    </TableCell>
+                  )}
+
+                  {columns.map((col) => (
+                    <TableCell key={col.key} className={alignClass(col.align)}>
+                      {col.render
+                        ? col.render(row, (page - 1) * pageSize + idx)
+                        : row[col.key]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

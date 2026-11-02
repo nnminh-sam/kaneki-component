@@ -1,8 +1,11 @@
 import { useState } from "react";
 import {
   ActionModal,
+  Avatar,
   Badge,
   Button,
+  ButtonSize,
+  ButtonVariant,
   Card,
   CardContent,
   CardDescription,
@@ -11,6 +14,9 @@ import {
   CardTitle,
   CollapsibleSidebar,
   DataTable,
+  DropdownItem,
+  DropdownMenu,
+  DropdownSeparator,
   Input,
   LoadingBar,
   LoadingSpinner,
@@ -19,41 +25,55 @@ import {
   SidebarItem,
   SidebarNav,
   SidebarSection,
-  Skeleton,
-  SubmitButton,
+  Switch,
   TabContent,
   TabList,
   Tabs,
   TabTrigger,
   Textarea,
   ThemeToggle,
+  Tooltip,
   useTheme,
+  useToast,
 } from "../../src";
 
 import {
+  Activity,
   AlertCircle,
   AlertTriangle,
   ArrowRight,
+  ArrowUpRight,
   BookOpen,
+  Check,
   CheckCircle2,
   Code,
   Copy,
+  DollarSign,
+  Download,
+  ExternalLink,
+  Eye,
+  Filter,
   FolderGit2,
-  HelpCircle,
-  Info,
   Layers,
   LayoutDashboard,
   Mail,
   Menu,
+  MoreVertical,
   Palette,
+  Play,
   Plus,
+  RefreshCw,
   Rocket,
   Search,
   Settings,
+  ShieldCheck,
+  Sliders,
   Sparkles,
   Table as TableIcon,
   Trash2,
+  TrendingUp,
   User,
+  Users,
 } from "lucide-react";
 
 interface ProjectRecord {
@@ -81,35 +101,58 @@ const SAMPLE_PROJECTS: ProjectRecord[] = [
 
 export default function App() {
   const { theme, resolvedTheme } = useTheme();
+  const toast = useToast();
 
   // Navigation state
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Button loading demo state
-  const [buttonLoading, setButtonLoading] = useState(false);
+  // Contrast comparison state
+  const [legacyContrast, setLegacyContrast] = useState(false);
+
+  // Button Playground States
+  const [pgVariant, setPgVariant] = useState<ButtonVariant>("primary");
+  const [pgSize, setPgSize] = useState<ButtonSize>("md");
+  const [pgLoading, setPgLoading] = useState(false);
+  const [pgDisabled, setPgDisabled] = useState(false);
+  const [pgWithIcon, setPgWithIcon] = useState(true);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   // Modal demo states
   const [isPromptOpen, setIsPromptOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDestructiveOpen, setIsDestructiveOpen] = useState(false);
   const [isGenericModalOpen, setIsGenericModalOpen] = useState(false);
-  const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
-  // Notification / toast feedback
-  const showFeedback = (msg: string) => {
-    setModalFeedback(msg);
-    setTimeout(() => setModalFeedback(null), 4000);
+  // Settings switch states
+  const [switch1, setSwitch1] = useState(true);
+  const [switch2, setSwitch2] = useState(false);
+  const [switch3, setSwitch3] = useState(true);
+
+  // Accent Color Customizer
+  const [accentPreset, setAccentPreset] = useState("indigo");
+
+  const applyAccent = (name: string, light: string, dark: string) => {
+    setAccentPreset(name);
+    document.documentElement.style.setProperty("--accent", resolvedTheme === "dark" ? dark : light);
+    toast.info("Accent Updated", `Active color preset: ${name}`);
   };
 
-  const triggerButtonLoading = () => {
-    setButtonLoading(true);
-    setTimeout(() => {
-      setButtonLoading(false);
-      showFeedback("Simulated operation completed successfully!");
-    }, 1800);
+  const copySnippet = (codeText: string) => {
+    navigator.clipboard.writeText(codeText);
+    setCopiedCode(true);
+    toast.success("Code Copied", "Snippet copied to your clipboard!");
+    setTimeout(() => setCopiedCode(false), 2000);
   };
+
+  const playgroundCode = `<Button variant="${pgVariant}" size="${pgSize}"${
+    pgLoading ? " isLoading" : ""
+  }${pgDisabled ? " disabled" : ""}${
+    pgWithIcon ? ' leftIcon={<Sparkles className="h-4 w-4" />}' : ""
+  }>
+  Action Label
+</Button>`;
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-bg">
@@ -125,38 +168,58 @@ export default function App() {
         footer={({ collapsed }) => (
           <div className="space-y-3">
             <ThemeToggle collapsed={collapsed} />
-            {!collapsed && (
-              <div className="flex items-center gap-2.5 px-1 py-0.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft text-accent text-xs font-semibold">
-                  K
+            <div className={`flex items-center gap-2.5 rounded-xl border border-border bg-surface-subtle p-2 ${collapsed ? "justify-center" : ""}`}>
+              <Avatar name="Minh Nguyen" size="sm" status="online" />
+              {!collapsed && (
+                <div className="truncate text-xs flex-1">
+                  <p className="font-semibold text-fg">Minh Nguyen</p>
+                  <p className="text-[11px] text-muted">Workspace Admin</p>
                 </div>
-                <div className="truncate text-xs">
-                  <p className="font-medium text-fg">Kaneki Frontend</p>
-                  <p className="text-[11px] text-muted">v0.1.0 (Ready)</p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       >
         {({ collapsed, closeMobile }) => (
           <div className="space-y-4">
-            <SidebarSection title="Navigation" collapsed={collapsed}>
+            <SidebarSection title="Showcase" collapsed={collapsed}>
               <SidebarNav>
                 <SidebarItem
                   icon={<LayoutDashboard className="h-4 w-4" />}
-                  label="Overview"
-                  active={activeTab === "overview"}
+                  label="Dashboard Preview"
+                  badge="New"
+                  active={activeTab === "dashboard"}
                   collapsed={collapsed}
                   onClick={() => {
-                    setActiveTab("overview");
+                    setActiveTab("dashboard");
+                    closeMobile();
+                  }}
+                />
+                <SidebarItem
+                  icon={<Sliders className="h-4 w-4" />}
+                  label="Contrast & Playground"
+                  badge="Compare"
+                  active={activeTab === "playground"}
+                  collapsed={collapsed}
+                  onClick={() => {
+                    setActiveTab("playground");
+                    closeMobile();
+                  }}
+                />
+                <SidebarItem
+                  icon={<TableIcon className="h-4 w-4" />}
+                  label="Enhanced Data Table"
+                  badge="Batch"
+                  active={activeTab === "table"}
+                  collapsed={collapsed}
+                  onClick={() => {
+                    setActiveTab("table");
                     closeMobile();
                   }}
                 />
                 <SidebarItem
                   icon={<Layers className="h-4 w-4" />}
                   label="Buttons & Badges"
-                  badge="7 styles"
                   active={activeTab === "buttons"}
                   collapsed={collapsed}
                   onClick={() => {
@@ -175,29 +238,19 @@ export default function App() {
                   }}
                 />
                 <SidebarItem
-                  icon={<TableIcon className="h-4 w-4" />}
-                  label="Data Table"
-                  badge="Sorted"
-                  active={activeTab === "table"}
-                  collapsed={collapsed}
-                  onClick={() => {
-                    setActiveTab("table");
-                    closeMobile();
-                  }}
-                />
-                <SidebarItem
                   icon={<Code className="h-4 w-4" />}
-                  label="Form Inputs"
-                  active={activeTab === "inputs"}
+                  label="New Base Components"
+                  badge="Toast/Switch"
+                  active={activeTab === "components"}
                   collapsed={collapsed}
                   onClick={() => {
-                    setActiveTab("inputs");
+                    setActiveTab("components");
                     closeMobile();
                   }}
                 />
                 <SidebarItem
                   icon={<Palette className="h-4 w-4" />}
-                  label="Theme & Tokens"
+                  label="Tokens & Themes"
                   active={activeTab === "tokens"}
                   collapsed={collapsed}
                   onClick={() => {
@@ -212,7 +265,7 @@ export default function App() {
               <SidebarNav>
                 <SidebarItem
                   icon={<BookOpen className="h-4 w-4" />}
-                  label="Installation"
+                  label="Installation Guide"
                   active={activeTab === "install"}
                   collapsed={collapsed}
                   onClick={() => {
@@ -244,357 +297,413 @@ export default function App() {
                 kaneki-components
               </span>
               <Badge variant="accent">v0.1.0</Badge>
-              <Badge variant="ok">Vercel Ready</Badge>
+              <Badge variant="ok">Live Demo</Badge>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Live Contrast Toggle in Header */}
+            <div className="hidden lg:flex items-center gap-2 border-r border-border pr-3">
+              <span className="text-xs font-medium text-muted">Legacy Contrast:</span>
+              <Switch
+                checked={legacyContrast}
+                onCheckedChange={(val) => {
+                  setLegacyContrast(val);
+                  if (val) toast.warn("Legacy Contrast Active", "Showing low-contrast white text on pastel buttons.");
+                  else toast.success("Accessible Contrast Active", "Showing 10:1+ WCAG AAA dark ink tokens.");
+                }}
+              />
+            </div>
+
             <ThemeToggle variant="icon" />
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hidden sm:inline-flex"
+
+            <DropdownMenu
+              trigger={
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-surface-subtle px-2.5 py-1 text-xs font-medium text-fg hover:bg-surface cursor-pointer"
+                >
+                  <Palette className="h-3.5 w-3.5 text-accent" />
+                  <span className="capitalize">{accentPreset}</span>
+                </button>
+              }
             >
-              <Button variant="outline" size="xs" leftIcon={<FolderGit2 className="h-3.5 w-3.5" />}>
-                Source Clean
-              </Button>
-            </a>
+              <DropdownItem onClick={() => applyAccent("indigo", "#3f51d8", "#8d9bff")}>
+                Kaneki Indigo
+              </DropdownItem>
+              <DropdownItem onClick={() => applyAccent("violet", "#7c3aed", "#a78bfa")}>
+                Cyber Violet
+              </DropdownItem>
+              <DropdownItem onClick={() => applyAccent("emerald", "#059669", "#34d399")}>
+                Emerald Mint
+              </DropdownItem>
+              <DropdownItem onClick={() => applyAccent("coral", "#e11d48", "#fb7185")}>
+                Sunset Coral
+              </DropdownItem>
+            </DropdownMenu>
           </div>
         </header>
-
-        {/* Global Loading Bar Demo */}
-        {buttonLoading && <LoadingBar />}
-
-        {/* Floating Notification */}
-        {modalFeedback && (
-          <div className="fixed top-16 right-6 z-50 animate-bounce">
-            <div className="flex items-center gap-2 rounded-xl border border-ok/30 bg-ok-soft px-4 py-2.5 text-xs font-semibold text-ok shadow-lg">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>{modalFeedback}</span>
-            </div>
-          </div>
-        )}
 
         {/* Body Container */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="mx-auto w-full max-w-6xl space-y-8">
-            {/* OVERVIEW SECTION */}
-            {activeTab === "overview" && (
+
+            {/* DASHBOARD PREVIEW TAB */}
+            {activeTab === "dashboard" && (
               <div className="space-y-6">
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-fg">
-                    Kaneki UI Component Package
-                  </h1>
-                  <p className="mt-1 text-sm text-muted">
-                    Unified design system and base components extracted and modernized from Kaneki. Designed for future frontend apps with 100% consistent UI/UX.
-                  </p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-fg">
+                      Workspace Analytics Overview
+                    </h1>
+                    <p className="mt-1 text-xs text-muted">
+                      Realistic template page demonstrating Kaneki components unified in a production dashboard.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+                      onClick={() => toast.info("Syncing Metrics", "Retrieved latest workspace telemetry")}
+                    >
+                      Sync
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      leftIcon={<Plus className="h-3.5 w-3.5" />}
+                      legacyContrast={legacyContrast}
+                      onClick={() => setIsPromptOpen(true)}
+                    >
+                      New Deployment
+                    </Button>
+                  </div>
                 </div>
 
+                {/* KPI Metrics Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
-                        <CardTitle>Base Theme</CardTitle>
-                        <Palette className="h-4 w-4 text-accent" />
-                      </div>
-                      <CardDescription>Light, Dark & System</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-muted">
-                        CSS variables tokenized for instant automatic dark-mode reactivity.
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>Sidebar</CardTitle>
-                        <LayoutDashboard className="h-4 w-4 text-accent" />
-                      </div>
-                      <CardDescription>Collapsible & Responsive</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-muted">
-                        Desktop pinned or hover overlay, plus full-featured mobile drawer.
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>Action Modal</CardTitle>
-                        <AlertCircle className="h-4 w-4 text-accent" />
-                      </div>
-                      <CardDescription>Prompt, Confirm & Alert</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-muted">
-                        Built-in destructive styling, loading states, and keyboard escape dismiss.
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>Data Table</CardTitle>
-                        <TableIcon className="h-4 w-4 text-accent" />
-                      </div>
-                      <CardDescription>Search, Sort & Paginate</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-muted">
-                        Client-side instant sorting, search debounce, and empty states.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Quick Interactive Highlights */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Demo & Status</CardTitle>
-                    <CardDescription>
-                      This preview application tests all components in live conditions.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button
-                        variant="primary"
-                        onClick={() => setIsPromptOpen(true)}
-                        leftIcon={<Plus className="h-4 w-4" />}
-                      >
-                        Try Action Modal
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={triggerButtonLoading}
-                        isLoading={buttonLoading}
-                      >
-                        Trigger Async Loading Bar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setActiveTab("table")}
-                        rightIcon={<ArrowRight className="h-4 w-4" />}
-                      >
-                        Explore Table
-                      </Button>
-                    </div>
-
-                    <div className="rounded-xl border border-border bg-surface-subtle p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <LoadingSpinner size="sm" />
-                          <span className="text-xs font-medium text-fg">
-                            Current active theme:{" "}
-                            <span className="text-accent uppercase font-bold">
-                              {theme} ({resolvedTheme})
-                            </span>
-                          </span>
+                        <span className="text-xs font-medium text-muted">Monthly Revenue</span>
+                        <div className="rounded-lg bg-accent-soft p-1.5 text-accent">
+                          <DollarSign className="h-4 w-4" />
                         </div>
-                        <ThemeToggle variant="icon" />
+                      </div>
+                      <div className="mt-2 text-2xl font-bold text-fg">$48,290</div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-1.5 text-xs text-ok font-medium">
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        <span>+14.8% from last month</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted">Active Users</span>
+                        <div className="rounded-lg bg-ok-soft p-1.5 text-ok">
+                          <Users className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <div className="mt-2 text-2xl font-bold text-fg">2,845</div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-1.5 text-xs text-ok font-medium">
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        <span>+9.2% new signups</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted">Edge Deployments</span>
+                        <div className="rounded-lg bg-warn-soft p-1.5 text-warn">
+                          <Rocket className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <div className="mt-2 text-2xl font-bold text-fg">142</div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-1.5 text-xs text-muted font-medium">
+                        <Activity className="h-3.5 w-3.5 text-accent" />
+                        <span>99.98% uptime SLA</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted">Security Audits</span>
+                        <div className="rounded-lg bg-danger-soft p-1.5 text-danger">
+                          <ShieldCheck className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <div className="mt-2 text-2xl font-bold text-fg">0 Alerts</div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-1.5 text-xs text-ok font-medium">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span>All guardrails passing</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Split Section: Mini Table & Activity Feed */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>Recent Project Services</CardTitle>
+                            <CardDescription>Live deployment status across edge clusters</CardDescription>
+                          </div>
+                          <Button variant="outline" size="xs" onClick={() => setActiveTab("table")}>
+                            View Full Table
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="divide-y divide-border">
+                          {SAMPLE_PROJECTS.slice(0, 4).map((p) => (
+                            <div key={p.id} className="flex items-center justify-between py-3">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-subtle font-mono text-xs font-bold text-accent">
+                                  {p.id.split("-")[1]}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-fg">{p.name}</p>
+                                  <p className="text-[11px] text-muted">{p.category} • {p.version}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={p.status === "Active" ? "ok" : "warn"}>{p.status}</Badge>
+                                <DropdownMenu
+                                  trigger={
+                                    <button type="button" className="p-1 text-muted hover:text-fg rounded cursor-pointer">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </button>
+                                  }
+                                >
+                                  <DropdownItem onClick={() => toast.info("Opening", p.name)}>View Logs</DropdownItem>
+                                  <DropdownItem onClick={() => toast.success("Restarted", p.name)}>Redeploy</DropdownItem>
+                                  <DropdownSeparator />
+                                  <DropdownItem destructive onClick={() => toast.error("Stopped", p.name)}>Stop Service</DropdownItem>
+                                </DropdownMenu>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Team Activity Feed</CardTitle>
+                        <CardDescription>Real-time updates from workspace collaborators</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {[
+                          { name: "Minh Nguyen", action: "pushed a commit to", target: "kaneki-components", time: "5m ago", status: "online" as const },
+                          { name: "Sarah Connor", action: "deployed preview on", target: "vercel-edge", time: "18m ago", status: "away" as const },
+                          { name: "Alex Rivera", action: "approved security audit for", target: "PR #42", time: "1h ago", status: "offline" as const },
+                        ].map((act, i) => (
+                          <div key={i} className="flex items-start gap-3">
+                            <Avatar name={act.name} size="sm" status={act.status} />
+                            <div className="text-xs">
+                              <p className="text-fg leading-snug">
+                                <span className="font-semibold">{act.name}</span> {act.action}{" "}
+                                <span className="font-medium text-accent">{act.target}</span>
+                              </p>
+                              <p className="text-[10px] text-muted mt-0.5">{act.time}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                      <CardFooter>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          fullWidth
+                          onClick={() => toast.info("Activity", "All logs up to date")}
+                        >
+                          View Audit Trail
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CONTRAST COMPARISON & INTERACTIVE PLAYGROUND TAB */}
+            {activeTab === "playground" && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold text-fg">Contrast Comparison & Props Playground</h2>
+                  <p className="text-xs text-muted">
+                    Test the contrast difference between old hardcoded white text and new high-contrast semantic tokens.
+                  </p>
+                </div>
+
+                {/* Direct Comparison Banner */}
+                <Card className="border-accent/40 bg-accent-soft/20">
+                  <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-accent">Direct Contrast Comparison</CardTitle>
+                        <CardDescription>
+                          Switch below to see how white text on bright pastel backgrounds washed out vs the new accessible WCAG AAA tokens.
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-3 bg-surface p-2 rounded-xl border border-border">
+                        <span className="text-xs font-semibold text-fg">
+                          Mode: {legacyContrast ? "❌ Legacy White Text" : "✅ Accessible Contrast (10:1)"}
+                        </span>
+                        <Switch
+                          checked={legacyContrast}
+                          onCheckedChange={setLegacyContrast}
+                        />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* BUTTONS & BADGES SECTION */}
-            {activeTab === "buttons" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-fg">Buttons & Badges</h2>
-                  <p className="text-xs text-muted">
-                    Interactive buttons and badges with built-in accessibility, semantic colors, and loading states.
-                  </p>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Button Variants</CardTitle>
-                    <CardDescription>Semantic button styles for every action context</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex flex-wrap gap-3">
-                    <Button variant="primary">Primary</Button>
-                    <Button variant="secondary">Secondary</Button>
-                    <Button variant="outline">Outline</Button>
-                    <Button variant="ghost">Ghost</Button>
-                    <Button variant="danger">Danger</Button>
-                    <Button variant="warn">Warning</Button>
-                    <Button variant="success">Success</Button>
-                  </CardContent>
-                </Card>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <Button variant="primary" legacyContrast={legacyContrast}>
+                        Primary Action
+                      </Button>
+                      <Button variant="danger" legacyContrast={legacyContrast}>
+                        Danger Action
+                      </Button>
+                      <Button variant="warn" legacyContrast={legacyContrast}>
+                        Warning Action
+                      </Button>
+                      <Button variant="success" legacyContrast={legacyContrast}>
+                        Success Action
+                      </Button>
+                    </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Button Sizes</CardTitle>
-                    <CardDescription>Standardized sizing scale</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-wrap items-center gap-3">
-                    <Button size="xs">Extra Small (xs)</Button>
-                    <Button size="sm">Small (sm)</Button>
-                    <Button size="md">Medium (md)</Button>
-                    <Button size="lg">Large (lg)</Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Loading & Icons</CardTitle>
-                    <CardDescription>Simulate asynchronous operations</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button
-                        variant="primary"
-                        isLoading={buttonLoading}
-                        onClick={triggerButtonLoading}
-                      >
-                        Click to Load
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        leftIcon={<Mail className="h-4 w-4" />}
-                      >
-                        With Left Icon
-                      </Button>
-                      <Button
-                        variant="outline"
-                        rightIcon={<ArrowRight className="h-4 w-4" />}
-                      >
-                        With Right Icon
-                      </Button>
-                      <Button variant="primary" disabled>
-                        Disabled
-                      </Button>
+                    <div className="rounded-xl border border-border bg-surface p-4 text-xs space-y-2">
+                      <p className="font-semibold text-fg">Why this works:</p>
+                      <p className="text-muted leading-relaxed">
+                        When <code className="text-accent font-mono font-bold">legacyContrast = false</code>, dark mode buttons automatically use{" "}
+                        <code className="text-accent font-mono">--accent-fg: #0d0f1c</code> and <code className="text-accent font-mono">--warn-fg: #1c1401</code>, producing razor-sharp contrast against pastel fills. In light mode, buttons retain crisp white text against deep saturated tones.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
 
+                {/* Live Props Inspector */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Badges</CardTitle>
-                    <CardDescription>Status indicators and tags</CardDescription>
+                    <CardTitle>Interactive Component Props Playground</CardTitle>
+                    <CardDescription>Customize button properties and copy the ready-to-use JSX snippet</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex flex-wrap gap-2.5">
-                    <Badge variant="default">Default</Badge>
-                    <Badge variant="accent" icon={<Sparkles className="h-3 w-3" />}>
-                      Accent Active
-                    </Badge>
-                    <Badge variant="ok" icon={<CheckCircle2 className="h-3 w-3" />}>
-                      Success OK
-                    </Badge>
-                    <Badge variant="warn" icon={<AlertTriangle className="h-3 w-3" />}>
-                      Needs Review
-                    </Badge>
-                    <Badge variant="danger" icon={<Trash2 className="h-3 w-3" />}>
-                      Failed / Error
-                    </Badge>
-                    <Badge variant="subtle">Subtle Outline</Badge>
+                  <CardContent className="space-y-6">
+                    {/* Controls Bar */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl border border-border bg-surface-subtle">
+                      <div>
+                        <label className="text-xs font-semibold text-fg block mb-1">Variant</label>
+                        <Select
+                          value={pgVariant}
+                          onChange={(e) => setPgVariant(e.target.value as ButtonVariant)}
+                        >
+                          <option value="primary">primary</option>
+                          <option value="secondary">secondary</option>
+                          <option value="outline">outline</option>
+                          <option value="ghost">ghost</option>
+                          <option value="danger">danger</option>
+                          <option value="warn">warn</option>
+                          <option value="success">success</option>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-fg block mb-1">Size</label>
+                        <Select
+                          value={pgSize}
+                          onChange={(e) => setPgSize(e.target.value as ButtonSize)}
+                        >
+                          <option value="xs">xs (Extra Small)</option>
+                          <option value="sm">sm (Small)</option>
+                          <option value="md">md (Medium)</option>
+                          <option value="lg">lg (Large)</option>
+                        </Select>
+                      </div>
+
+                      <div className="flex flex-col justify-end space-y-2">
+                        <Switch
+                          label="Loading State"
+                          checked={pgLoading}
+                          onCheckedChange={setPgLoading}
+                        />
+                        <Switch
+                          label="Disabled State"
+                          checked={pgDisabled}
+                          onCheckedChange={setPgDisabled}
+                        />
+                      </div>
+
+                      <div className="flex flex-col justify-end space-y-2">
+                        <Switch
+                          label="Left Icon"
+                          checked={pgWithIcon}
+                          onCheckedChange={setPgWithIcon}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Preview Box */}
+                    <div className="flex flex-col items-center justify-center p-8 rounded-xl border border-dashed border-border bg-surface">
+                      <Button
+                        variant={pgVariant}
+                        size={pgSize}
+                        isLoading={pgLoading}
+                        disabled={pgDisabled}
+                        leftIcon={pgWithIcon ? <Sparkles className="h-4 w-4" /> : undefined}
+                        legacyContrast={legacyContrast}
+                        onClick={() => toast.success("Button Clicked", `Triggered ${pgVariant} variant`)}
+                      >
+                        Action Label
+                      </Button>
+                    </div>
+
+                    {/* Copy Code Box */}
+                    <div className="relative">
+                      <pre className="rounded-xl border border-border bg-surface-subtle p-4 text-xs font-mono text-fg overflow-x-auto">
+                        {playgroundCode}
+                      </pre>
+                      <button
+                        type="button"
+                        onClick={() => copySnippet(playgroundCode)}
+                        className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1 text-xs font-medium text-fg hover:border-accent cursor-pointer transition-colors"
+                      >
+                        {copiedCode ? <Check className="h-3.5 w-3.5 text-ok" /> : <Copy className="h-3.5 w-3.5" />}
+                        <span>{copiedCode ? "Copied" : "Copy JSX"}</span>
+                      </button>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
             )}
 
-            {/* MODALS SECTION */}
-            {activeTab === "modals" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-fg">Modals & Dialogs</h2>
-                  <p className="text-xs text-muted">
-                    Dialog primitives and ActionModals with prompt, confirm, and destructive actions.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Prompt Action Modal</CardTitle>
-                      <CardDescription>
-                        Collect single input with validation before confirming
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        variant="primary"
-                        onClick={() => setIsPromptOpen(true)}
-                        leftIcon={<Plus className="h-4 w-4" />}
-                      >
-                        Open Prompt Modal
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Confirmation Modal</CardTitle>
-                      <CardDescription>
-                        Standard confirmation for important user actions
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        variant="secondary"
-                        onClick={() => setIsConfirmOpen(true)}
-                        leftIcon={<Info className="h-4 w-4" />}
-                      >
-                        Open Confirm Modal
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Destructive Action Modal</CardTitle>
-                      <CardDescription>
-                        Red alert badge with danger confirmation button
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        variant="danger"
-                        onClick={() => setIsDestructiveOpen(true)}
-                        leftIcon={<Trash2 className="h-4 w-4" />}
-                      >
-                        Open Destructive Modal
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Custom Dialog (Base Modal)</CardTitle>
-                      <CardDescription>
-                        Unconstrained dialog with custom body and footer
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsGenericModalOpen(true)}
-                        leftIcon={<Layers className="h-4 w-4" />}
-                      >
-                        Open Base Modal
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {/* DATA TABLE SECTION */}
+            {/* ENHANCED DATA TABLE TAB */}
             {activeTab === "table" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-bold text-fg">Data Table</h2>
+                  <h2 className="text-xl font-bold text-fg">Enhanced Data Table</h2>
                   <p className="text-xs text-muted">
-                    Responsive, sortable data table with instant search filter and pagination.
+                    Featuring status filter chips, multi-row checkbox selection, batch action bar, and row action dropdowns.
                   </p>
                 </div>
 
@@ -602,15 +711,28 @@ export default function App() {
                   <CardHeader>
                     <CardTitle>Project Registry</CardTitle>
                     <CardDescription>
-                      Click table headers to sort. Type in the search box to filter across all columns.
+                      Select checkboxes to test the batch action bar. Click filter chips to filter by category.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <DataTable<ProjectRecord>
                       data={SAMPLE_PROJECTS}
                       pageSize={5}
-                      searchPlaceholder="Search project name, category, or status..."
-                      onRowClick={(row) => showFeedback(`Selected row: ${row.name} (${row.id})`)}
+                      selectable
+                      filterKey="status"
+                      filterOptions={[
+                        { label: "Active", value: "Active", count: 6 },
+                        { label: "Draft", value: "Draft", count: 2 },
+                        { label: "Pending", value: "Pending", count: 1 },
+                        { label: "Archived", value: "Archived", count: 2 },
+                      ]}
+                      searchPlaceholder="Search project name, category..."
+                      onSelectionChange={(selected) => {
+                        if (selected.length > 0) {
+                          toast.info("Selection Changed", `${selected.length} items highlighted`);
+                        }
+                      }}
+                      onRowClick={(row) => toast.info("Project Selected", `${row.name} (${row.id})`)}
                       columns={[
                         {
                           key: "id",
@@ -673,6 +795,36 @@ export default function App() {
                             </span>
                           ),
                         },
+                        {
+                          key: "actions",
+                          header: "",
+                          align: "right",
+                          render: (row) => (
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu
+                                trigger={
+                                  <button
+                                    type="button"
+                                    className="p-1 rounded text-muted hover:text-fg hover:bg-surface-subtle cursor-pointer"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </button>
+                                }
+                              >
+                                <DropdownItem onClick={() => toast.success("Project Opened", row.name)}>
+                                  Open Workspace
+                                </DropdownItem>
+                                <DropdownItem onClick={() => toast.info("Settings", row.id)}>
+                                  Edit Configuration
+                                </DropdownItem>
+                                <DropdownSeparator />
+                                <DropdownItem destructive onClick={() => toast.error("Archived", row.name)}>
+                                  Archive Project
+                                </DropdownItem>
+                              </DropdownMenu>
+                            </div>
+                          ),
+                        },
                       ]}
                     />
                   </CardContent>
@@ -680,81 +832,296 @@ export default function App() {
               </div>
             )}
 
-            {/* FORM INPUTS SECTION */}
-            {activeTab === "inputs" && (
+            {/* NEW BASE COMPONENTS TAB */}
+            {activeTab === "components" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-bold text-fg">Form Inputs</h2>
+                  <h2 className="text-xl font-bold text-fg">New Base UI Components</h2>
                   <p className="text-xs text-muted">
-                    Accessible form components with label, helper text, addons, and error states.
+                    Components added to expand the design system: Toasts, Switches, Avatars, Tooltips, and Dropdowns.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Toast Notifications */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Text Inputs</CardTitle>
-                      <CardDescription>Standard and adorned inputs</CardDescription>
+                      <CardTitle>Toast Notifications</CardTitle>
+                      <CardDescription>Trigger floating alert toasts with auto-dismiss</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <Input
-                        label="Project Name"
-                        placeholder="e.g. kaneki-dashboard"
-                        helperText="Use alphanumeric characters and hyphens"
-                      />
+                    <CardContent className="flex flex-wrap gap-2.5">
+                      <Button
+                        variant="success"
+                        size="sm"
+                        legacyContrast={legacyContrast}
+                        onClick={() => toast.success("Deployment Succeeded", "Commit 3fa8b deployed to Vercel Edge")}
+                      >
+                        Success Toast
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        legacyContrast={legacyContrast}
+                        onClick={() => toast.error("Build Failed", "SyntaxError: Unexpected token in line 42")}
+                      >
+                        Error Toast
+                      </Button>
+                      <Button
+                        variant="warn"
+                        size="sm"
+                        legacyContrast={legacyContrast}
+                        onClick={() => toast.warn("Quota Warning", "OpenRouter tokens at 85% capacity")}
+                      >
+                        Warning Toast
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toast.info("Sync Complete", "12 notes synced with Neon DB")}
+                      >
+                        Info Toast
+                      </Button>
+                    </CardContent>
+                  </Card>
 
-                      <Input
-                        label="Admin Email"
-                        type="email"
-                        placeholder="admin@kaneki.dev"
-                        leftAddon={<Mail className="h-4 w-4" />}
+                  {/* Toggle Switches */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Toggle Switches</CardTitle>
+                      <CardDescription>Accessible switches for preferences & settings</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3.5">
+                      <Switch
+                        label="Enable Automatic Git Push"
+                        description="Automatically push changes upon build success"
+                        checked={switch1}
+                        onCheckedChange={setSwitch1}
                       />
-
-                      <Input
-                        label="API Key"
-                        defaultValue="invalid_key_xyz"
-                        error="Invalid API key format. Must begin with knk_"
+                      <Switch
+                        label="Dark Mode Overrides"
+                        description="Force dark theme regardless of OS preferences"
+                        checked={switch2}
+                        onCheckedChange={setSwitch2}
+                      />
+                      <Switch
+                        label="Telemetry & Crash Reports"
+                        description="Send anonymous stack traces to Kaneki servers"
+                        checked={switch3}
+                        onCheckedChange={setSwitch3}
                       />
                     </CardContent>
                   </Card>
 
+                  {/* Avatars */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Select & Textarea</CardTitle>
-                      <CardDescription>Multi-line and dropdown choices</CardDescription>
+                      <CardTitle>Avatars with Status Indicators</CardTitle>
+                      <CardDescription>Initials fallback with online, away, and busy dots</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <Select label="Deployment Environment">
-                        <option value="production">Production (Vercel Edge)</option>
-                        <option value="staging">Staging Preview</option>
-                        <option value="development">Local Development</option>
-                      </Select>
+                    <CardContent className="flex flex-wrap items-center gap-4">
+                      <Tooltip content="Minh Nguyen (Online)" side="top">
+                        <Avatar name="Minh Nguyen" size="lg" status="online" />
+                      </Tooltip>
+                      <Tooltip content="Sarah Connor (Away)" side="top">
+                        <Avatar name="Sarah Connor" size="md" status="away" />
+                      </Tooltip>
+                      <Tooltip content="Alex Rivera (Busy)" side="top">
+                        <Avatar name="Alex Rivera" size="sm" status="busy" />
+                      </Tooltip>
+                      <Tooltip content="Dev Bot (Offline)" side="top">
+                        <Avatar name="Bot Agent" size="xs" status="offline" />
+                      </Tooltip>
+                    </CardContent>
+                  </Card>
 
-                      <Textarea
-                        label="Description & Notes"
-                        placeholder="Write details about the project requirements..."
-                        rows={4}
-                        helperText="Markdown syntax is supported"
-                      />
+                  {/* Dropdown Menu */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Dropdown Menus</CardTitle>
+                      <CardDescription>Click outside and ESC dismiss menus</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex items-center gap-3">
+                      <DropdownMenu
+                        trigger={
+                          <Button variant="secondary" size="sm" rightIcon={<MoreVertical className="h-3.5 w-3.5" />}>
+                            Options Menu
+                          </Button>
+                        }
+                      >
+                        <DropdownItem onClick={() => toast.info("Action", "Profile selected")}>
+                          View Profile
+                        </DropdownItem>
+                        <DropdownItem onClick={() => toast.info("Action", "Settings opened")}>
+                          Account Settings
+                        </DropdownItem>
+                        <DropdownSeparator />
+                        <DropdownItem destructive onClick={() => toast.error("Logout", "Logged out")}>
+                          Sign Out
+                        </DropdownItem>
+                      </DropdownMenu>
                     </CardContent>
                   </Card>
                 </div>
               </div>
             )}
 
-            {/* THEME & TOKENS SECTION */}
-            {activeTab === "tokens" && (
+            {/* BUTTONS & BADGES TAB */}
+            {activeTab === "buttons" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-bold text-fg">Theme & Tokens</h2>
+                  <h2 className="text-xl font-bold text-fg">Buttons & Badges Suite</h2>
                   <p className="text-xs text-muted">
-                    CSS Variables and design tokens defined in kaneki-components/styles.css.
+                    All variant styles rendered with accessible contrast tokens.
                   </p>
                 </div>
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Interactive Theme Switcher</CardTitle>
+                    <CardTitle>Button Variants</CardTitle>
+                    <CardDescription>Semantic button styles for every action context</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap gap-3">
+                    <Button variant="primary" legacyContrast={legacyContrast}>Primary</Button>
+                    <Button variant="secondary">Secondary</Button>
+                    <Button variant="outline">Outline</Button>
+                    <Button variant="ghost">Ghost</Button>
+                    <Button variant="danger" legacyContrast={legacyContrast}>Danger</Button>
+                    <Button variant="warn" legacyContrast={legacyContrast}>Warning</Button>
+                    <Button variant="success" legacyContrast={legacyContrast}>Success</Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Button Sizes</CardTitle>
+                    <CardDescription>Standardized sizing scale</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap items-center gap-3">
+                    <Button size="xs" legacyContrast={legacyContrast}>Extra Small (xs)</Button>
+                    <Button size="sm" legacyContrast={legacyContrast}>Small (sm)</Button>
+                    <Button size="md" legacyContrast={legacyContrast}>Medium (md)</Button>
+                    <Button size="lg" legacyContrast={legacyContrast}>Large (lg)</Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Badges</CardTitle>
+                    <CardDescription>Status indicators and tags</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap gap-2.5">
+                    <Badge variant="default">Default</Badge>
+                    <Badge variant="accent" icon={<Sparkles className="h-3 w-3" />}>
+                      Accent Active
+                    </Badge>
+                    <Badge variant="ok" icon={<CheckCircle2 className="h-3 w-3" />}>
+                      Success OK
+                    </Badge>
+                    <Badge variant="warn" icon={<AlertTriangle className="h-3 w-3" />}>
+                      Needs Review
+                    </Badge>
+                    <Badge variant="danger" icon={<Trash2 className="h-3 w-3" />}>
+                      Failed / Error
+                    </Badge>
+                    <Badge variant="subtle">Subtle Outline</Badge>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* MODALS TAB */}
+            {activeTab === "modals" && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold text-fg">Modals & Dialogs</h2>
+                  <p className="text-xs text-muted">
+                    Dialog primitives and ActionModals with prompt, confirm, and destructive actions.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Prompt Action Modal</CardTitle>
+                      <CardDescription>Collect single input with validation</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        variant="primary"
+                        onClick={() => setIsPromptOpen(true)}
+                        leftIcon={<Plus className="h-4 w-4" />}
+                        legacyContrast={legacyContrast}
+                      >
+                        Open Prompt Modal
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Confirmation Modal</CardTitle>
+                      <CardDescription>Standard confirmation dialog</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        variant="secondary"
+                        onClick={() => setIsConfirmOpen(true)}
+                        leftIcon={<AlertCircle className="h-4 w-4" />}
+                      >
+                        Open Confirm Modal
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Destructive Action Modal</CardTitle>
+                      <CardDescription>Red alert badge with danger button</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        variant="danger"
+                        onClick={() => setIsDestructiveOpen(true)}
+                        leftIcon={<Trash2 className="h-4 w-4" />}
+                        legacyContrast={legacyContrast}
+                      >
+                        Open Destructive Modal
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Custom Dialog (Base Modal)</CardTitle>
+                      <CardDescription>Unconstrained dialog with custom body and footer</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsGenericModalOpen(true)}
+                        leftIcon={<Layers className="h-4 w-4" />}
+                      >
+                        Open Base Modal
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {/* TOKENS & THEMES TAB */}
+            {activeTab === "tokens" && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold text-fg">Design Tokens & Dynamic Themes</h2>
+                  <p className="text-xs text-muted">
+                    Live inspection of CSS variables in the active theme.
+                  </p>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Theme Switcher</CardTitle>
                     <CardDescription>Switch between Light, Dark, or System mode</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -766,24 +1133,24 @@ export default function App() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Design Token Palette</CardTitle>
-                    <CardDescription>Live preview of CSS variables in the active theme</CardDescription>
+                    <CardTitle>Active Palette Preview</CardTitle>
+                    <CardDescription>Semantic background and matching text tokens</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {[
-                        { name: "--bg", label: "Background", class: "bg-bg text-fg border border-border" },
-                        { name: "--surface", label: "Surface", class: "bg-surface text-fg border border-border" },
-                        { name: "--surface-subtle", label: "Subtle Surface", class: "bg-surface-subtle text-fg border border-border" },
-                        { name: "--accent", label: "Accent", class: "bg-accent text-white" },
-                        { name: "--accent-soft", label: "Accent Soft", class: "bg-accent-soft text-accent border border-accent/20" },
-                        { name: "--ok", label: "Success / OK", class: "bg-ok text-white" },
-                        { name: "--warn", label: "Warning", class: "bg-warn text-white" },
-                        { name: "--danger", label: "Danger", class: "bg-danger text-white" },
+                        { name: "--accent", fg: "--accent-fg", label: "Accent", bg: "bg-accent", text: "text-accent-fg" },
+                        { name: "--danger", fg: "--danger-fg", label: "Danger", bg: "bg-danger", text: "text-danger-fg" },
+                        { name: "--warn", fg: "--warn-fg", label: "Warning", bg: "bg-warn", text: "text-warn-fg" },
+                        { name: "--ok", fg: "--ok-fg", label: "Success", bg: "bg-ok", text: "text-ok-fg" },
+                        { name: "--surface", fg: "--fg", label: "Surface", bg: "bg-surface border border-border", text: "text-fg" },
+                        { name: "--surface-subtle", fg: "--fg", label: "Subtle Surface", bg: "bg-surface-subtle border border-border", text: "text-fg" },
+                        { name: "--accent-soft", fg: "--accent", label: "Accent Soft", bg: "bg-accent-soft border border-accent/20", text: "text-accent" },
+                        { name: "--ok-soft", fg: "--ok", label: "Success Soft", bg: "bg-ok-soft border border-ok/20", text: "text-ok" },
                       ].map((token) => (
                         <div
                           key={token.name}
-                          className={`rounded-xl p-3.5 text-xs flex flex-col justify-between h-20 ${token.class}`}
+                          className={`rounded-xl p-3.5 text-xs flex flex-col justify-between h-20 ${token.bg} ${token.text}`}
                         >
                           <span className="font-semibold">{token.label}</span>
                           <span className="font-mono text-[10px] opacity-80">{token.name}</span>
@@ -795,22 +1162,19 @@ export default function App() {
               </div>
             )}
 
-            {/* INSTALLATION SECTION */}
+            {/* INSTALLATION TAB */}
             {activeTab === "install" && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-fg">Installation & Usage</h2>
                   <p className="text-xs text-muted">
-                    How to install and import kaneki-components in future frontend projects.
+                    Quick setup guide for future frontend applications.
                   </p>
                 </div>
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>1. Install the Package</CardTitle>
-                    <CardDescription>
-                      Install via npm, pnpm, or bun. Note that the published package excludes the demo directory and preview code!
-                    </CardDescription>
+                    <CardTitle>Install the Package</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <pre className="rounded-xl border border-border bg-surface-subtle p-3.5 text-xs font-mono text-fg overflow-x-auto">
@@ -821,43 +1185,22 @@ export default function App() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>2. Import Styles & ThemeProvider</CardTitle>
-                    <CardDescription>
-                      Wrap your root layout (Next.js layout.tsx or Vite App.tsx)
-                    </CardDescription>
+                    <CardTitle>Setup Root Layout</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <pre className="rounded-xl border border-border bg-surface-subtle p-3.5 text-xs font-mono text-fg overflow-x-auto">
 {`import "kaneki-components/styles.css";
-import { ThemeProvider } from "kaneki-components";
+import { ThemeProvider, ToastProvider } from "kaneki-components";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider defaultTheme="system">
-      {children}
+      <ToastProvider>
+        {children}
+      </ToastProvider>
     </ThemeProvider>
   );
 }`}
-                    </pre>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>3. Use Any Base Component</CardTitle>
-                    <CardDescription>
-                      Import Button, CollapsibleSidebar, ActionModal, DataTable anywhere
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <pre className="rounded-xl border border-border bg-surface-subtle p-3.5 text-xs font-mono text-fg overflow-x-auto">
-{`import {
-  Button,
-  CollapsibleSidebar,
-  ActionModal,
-  DataTable,
-  ThemeToggle,
-} from "kaneki-components";`}
                     </pre>
                   </CardContent>
                 </Card>
@@ -867,17 +1210,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
       </div>
 
-      {/* ACTION MODAL INSTANCES */}
+      {/* ACTION MODALS */}
       <ActionModal
         isOpen={isPromptOpen}
         type="prompt"
         title="Create New Project"
-        description="Enter the name of your frontend project to initialize."
-        inputPlaceholder="e.g. kaneki-analytics"
+        description="Enter the slug of your new frontend application."
+        inputPlaceholder="e.g. kaneki-mobile"
         confirmText="Create Project"
         onConfirm={(name) => {
           setIsPromptOpen(false);
-          showFeedback(`Created new project: "${name}"`);
+          toast.success("Project Created", `Initialized "${name}"`);
         }}
         onCancel={() => setIsPromptOpen(false)}
       />
@@ -885,12 +1228,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <ActionModal
         isOpen={isConfirmOpen}
         type="confirm"
-        title="Deploy to Vercel"
-        description="Are you sure you want to promote the latest build to production on Vercel?"
+        title="Deploy to Vercel Production"
+        description="Are you sure you want to promote the current build to production on Vercel?"
         confirmText="Confirm Deploy"
         onConfirm={() => {
           setIsConfirmOpen(false);
-          showFeedback("Deployment to Vercel triggered successfully!");
+          toast.success("Deployment Triggered", "Promoting to edge network...");
         }}
         onCancel={() => setIsConfirmOpen(false)}
       />
@@ -904,7 +1247,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         confirmText="Yes, Delete Permanently"
         onConfirm={() => {
           setIsDestructiveOpen(false);
-          showFeedback("Project deleted.");
+          toast.error("Project Deleted", "Workspace records purged.");
         }}
         onCancel={() => setIsDestructiveOpen(false)}
       />

@@ -10,12 +10,16 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-fg: var(--danger-fg);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  --color-warn-fg: var(--warn-fg);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
+  --color-ok-fg: var(--ok-fg);
 }
 
 :root {
@@ -27,12 +31,16 @@
   --border: #e6e4df;
   --accent: #3f51d8;
   --accent-soft: #eceffd;
+  --accent-fg: #ffffff;
   --danger: #c3342b;
   --danger-soft: #fcefed;
+  --danger-fg: #ffffff;
   --warn: #9a6200;
   --warn-soft: #fcf4e2;
+  --warn-fg: #ffffff;
   --ok: #217a45;
   --ok-soft: #e9f5ee;
+  --ok-fg: #ffffff;
   color-scheme: light;
 }
 
@@ -49,12 +57,16 @@
   --border: #2c2b28;
   --accent: #8d9bff;
   --accent-soft: #23264a;
+  --accent-fg: #0d0f1c; /* High contrast dark ink on pastel periwinkle */
   --danger: #ff8b80;
   --danger-soft: #3a1f1c;
+  --danger-fg: #1f0605; /* High contrast dark ink on pastel coral */
   --warn: #f0c060;
   --warn-soft: #36290f;
+  --warn-fg: #1c1401;   /* High contrast dark ink on pastel gold */
   --ok: #7ad69c;
   --ok-soft: #173123;
+  --ok-fg: #041409;     /* High contrast dark ink on pastel mint */
   color-scheme: dark;
 }
 
@@ -69,12 +81,16 @@
     --border: #2c2b28;
     --accent: #8d9bff;
     --accent-soft: #23264a;
+    --accent-fg: #0d0f1c;
     --danger: #ff8b80;
     --danger-soft: #3a1f1c;
+    --danger-fg: #1f0605;
     --warn: #f0c060;
     --warn-soft: #36290f;
+    --warn-fg: #1c1401;
     --ok: #7ad69c;
     --ok-soft: #173123;
+    --ok-fg: #041409;
     color-scheme: dark;
   }
 }
@@ -95,9 +111,13 @@
 .text-fg { color: var(--fg); }
 .text-muted { color: var(--muted); }
 .text-accent { color: var(--accent); }
+.text-accent-fg { color: var(--accent-fg); }
 .text-danger { color: var(--danger); }
+.text-danger-fg { color: var(--danger-fg); }
 .text-warn { color: var(--warn); }
+.text-warn-fg { color: var(--warn-fg); }
 .text-ok { color: var(--ok); }
+.text-ok-fg { color: var(--ok-fg); }
 
 .border-border { border-color: var(--border); }
 .border-accent { border-color: var(--accent); }

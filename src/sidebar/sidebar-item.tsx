@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
+import { Tooltip } from "../tooltip/tooltip";
 
 export interface SidebarNavProps {
   children: ReactNode;
@@ -87,44 +88,39 @@ export function SidebarItem({
     </>
   );
 
-  const baseClasses = `group flex items-center rounded-lg text-xs font-medium transition-colors cursor-pointer select-none ${
+  const baseClasses = `group relative flex items-center rounded-lg text-xs font-medium transition-all cursor-pointer select-none ${
     collapsed
       ? "justify-center p-2.5 w-10 h-10 mx-auto"
       : "gap-2.5 px-2.5 py-2 w-full text-left"
   } ${
     active
-      ? "bg-accent-soft text-accent font-semibold"
+      ? "bg-accent-soft text-accent font-semibold shadow-xs"
       : "text-muted hover:bg-surface-subtle hover:text-fg"
   } ${className}`;
 
-  if (href) {
-    if (LinkComponent) {
-      const LinkElem = LinkComponent;
-      return (
-        <LinkElem
-          href={href}
-          onClick={onClick}
-          className={baseClasses}
-        >
-          {content}
-        </LinkElem>
-      );
-    }
-    return (
-      <a href={href} onClick={onClick} className={baseClasses} title={collapsed ? label : undefined}>
+  const element = href ? (
+    LinkComponent ? (
+      <LinkComponent href={href} onClick={onClick} className={baseClasses}>
+        {content}
+      </LinkComponent>
+    ) : (
+      <a href={href} onClick={onClick} className={baseClasses}>
         {content}
       </a>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={baseClasses}
-      title={collapsed ? label : undefined}
-    >
+    )
+  ) : (
+    <button type="button" onClick={onClick} className={baseClasses}>
       {content}
     </button>
   );
+
+  if (collapsed) {
+    return (
+      <Tooltip content={label} side="right">
+        {element}
+      </Tooltip>
+    );
+  }
+
+  return element;
 }
