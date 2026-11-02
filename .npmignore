@@ -1,0 +1,9 @@
+# Ignored from npm package distribution
+demo/
+src/
+.github/
+.vscode/
+tsup.config.ts
+tsconfig.json
+vercel.json
+*.log
