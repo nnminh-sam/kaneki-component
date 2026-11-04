@@ -2,14 +2,15 @@
 
 import type { ComponentType, ReactNode } from "react";
 import { Tooltip } from "../tooltip/tooltip";
+import { cn } from "../utils/cn";
 
 export interface SidebarNavProps {
   children: ReactNode;
   className?: string;
 }
 
-export function SidebarNav({ children, className = "" }: SidebarNavProps) {
-  return <nav className={`space-y-1 ${className}`}>{children}</nav>;
+export function SidebarNav({ children, className }: SidebarNavProps) {
+  return <nav className={cn("space-y-1", className)}>{children}</nav>;
 }
 
 export interface SidebarSectionProps {
@@ -23,10 +24,10 @@ export function SidebarSection({
   title,
   collapsed = false,
   children,
-  className = "",
+  className,
 }: SidebarSectionProps) {
   return (
-    <div className={`space-y-1 ${className}`}>
+    <div className={cn("space-y-1", className)}>
       {title && !collapsed && (
         <h4 className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
           {title}
@@ -63,14 +64,15 @@ export function SidebarItem({
   href,
   onClick,
   LinkComponent,
-  className = "",
+  className,
 }: SidebarItemProps) {
   const content = (
     <>
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center transition-colors ${
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center transition-colors",
           active ? "text-accent" : "text-muted group-hover:text-fg"
-        }`}
+        )}
       >
         {icon}
       </span>
@@ -88,15 +90,16 @@ export function SidebarItem({
     </>
   );
 
-  const baseClasses = `group relative flex items-center rounded-lg text-xs font-medium transition-all cursor-pointer select-none ${
+  const baseClasses = cn(
+    "group relative flex items-center rounded-lg text-xs font-medium transition-all cursor-pointer select-none",
     collapsed
       ? "justify-center p-2.5 w-10 h-10 mx-auto"
-      : "gap-2.5 px-2.5 py-2 w-full text-left"
-  } ${
+      : "gap-2.5 px-2.5 py-2 w-full text-left",
     active
       ? "bg-accent-soft text-accent font-semibold shadow-xs"
-      : "text-muted hover:bg-surface-subtle hover:text-fg"
-  } ${className}`;
+      : "text-muted hover:bg-surface-subtle hover:text-fg",
+    className
+  );
 
   const element = href ? (
     LinkComponent ? (

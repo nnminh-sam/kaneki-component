@@ -2,16 +2,17 @@
 
 import type { HTMLAttributes, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
+import { cn } from "../utils/cn";
 
 export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
-export function Skeleton({ className = "", ...props }: SkeletonProps) {
+export function Skeleton({ className, ...props }: SkeletonProps) {
   return (
     <div
       aria-hidden="true"
-      className={`animate-pulse rounded bg-surface-subtle ${className}`}
+      className={cn("animate-pulse rounded bg-surface-subtle", className)}
       {...props}
     />
   );
@@ -21,13 +22,13 @@ export interface LoadingBarProps {
   className?: string;
 }
 
-export function LoadingBar({ className = "" }: LoadingBarProps) {
+export function LoadingBar({ className }: LoadingBarProps) {
   return (
     <div
       role="progressbar"
       aria-label="Loading content"
       aria-busy="true"
-      className={`relative h-0.5 w-full overflow-hidden bg-accent-soft ${className}`}
+      className={cn("relative h-0.5 w-full overflow-hidden bg-accent-soft", className)}
     >
       <div className="h-full w-full origin-left animate-indeterminate bg-accent" />
     </div>
@@ -42,7 +43,7 @@ export interface LoadingSpinnerProps {
 
 export function LoadingSpinner({
   size = "md",
-  className = "",
+  className,
   label,
 }: LoadingSpinnerProps) {
   const sizeClasses = {
@@ -55,9 +56,9 @@ export function LoadingSpinner({
     <div
       role="status"
       aria-live="polite"
-      className={`flex items-center gap-2 text-muted ${className}`}
+      className={cn("flex items-center gap-2 text-muted", className)}
     >
-      <Loader2 className={`${sizeClasses} animate-spin text-accent`} />
+      <Loader2 className={cn(sizeClasses, "animate-spin text-accent")} />
       {label && <span className="text-xs font-medium">{label}</span>}
     </div>
   );

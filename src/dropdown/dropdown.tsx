@@ -7,6 +7,7 @@ import {
   type ButtonHTMLAttributes,
   type ReactNode,
 } from "react";
+import { cn } from "../utils/cn";
 
 export interface DropdownMenuProps {
   trigger: ReactNode;
@@ -19,7 +20,7 @@ export function DropdownMenu({
   trigger,
   children,
   align = "right",
-  className = "",
+  className,
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,7 +60,11 @@ export function DropdownMenu({
       {isOpen && (
         <div
           role="menu"
-          className={`absolute top-full z-50 mt-1.5 w-48 rounded-xl border border-border bg-surface p-1 shadow-xl animate-in fade-in-80 zoom-in-95 duration-150 ${alignClass} ${className}`}
+          className={cn(
+            "absolute top-full z-50 mt-1.5 w-48 rounded-xl border border-border bg-surface p-1 shadow-xl animate-in fade-in-80 zoom-in-95 duration-150",
+            alignClass,
+            className
+          )}
         >
           <div onClick={() => setIsOpen(false)}>{children}</div>
         </div>
@@ -78,18 +83,20 @@ export function DropdownItem({
   icon,
   destructive = false,
   children,
-  className = "",
+  className,
   ...props
 }: DropdownItemProps) {
   return (
     <button
       type="button"
       role="menuitem"
-      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer text-left ${
+      className={cn(
+        "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer text-left",
         destructive
           ? "text-danger hover:bg-danger-soft hover:text-danger"
-          : "text-fg hover:bg-surface-subtle"
-      } ${className}`}
+          : "text-fg hover:bg-surface-subtle",
+        className
+      )}
       {...props}
     >
       {icon && <span className="h-4 w-4 shrink-0">{icon}</span>}

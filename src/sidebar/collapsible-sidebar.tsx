@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { cn } from "../utils/cn";
 
 export interface CollapsibleSidebarRenderState {
   collapsed: boolean;
@@ -85,7 +86,7 @@ export function CollapsibleSidebar({
   mobileOnly = false,
   children,
   footer,
-  className = "",
+  className,
 }: CollapsibleSidebarProps) {
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
   const [internalMobileOpen, setInternalMobileOpen] =
@@ -148,19 +149,23 @@ export function CollapsibleSidebar({
       {/* Sidebar Aside */}
       <aside
         aria-label={ariaLabel ?? title}
-        className={`fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col border-r border-border bg-surface transition-all duration-200 md:static md:z-auto ${
-          mobileOnly ? "md:hidden" : ""
-        } ${
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col border-r border-border bg-surface transition-all duration-200 md:static md:z-auto",
+          mobileOnly && "md:hidden",
+
           isMobileOpen
             ? "w-72 sm:w-80 translate-x-0 shadow-2xl md:shadow-none"
-            : "-translate-x-full md:translate-x-0"
-        } md:${widthClass} ${className}`}
+            : "-translate-x-full md:translate-x-0",
+          `md:${widthClass}`,
+          className
+        )}
       >
         {/* Brand / Header */}
         <div
-          className={`flex h-14 shrink-0 items-center justify-between border-b border-border px-3.5 ${
-            isCollapsed ? "justify-center" : ""
-          }`}
+          className={cn(
+            "flex h-14 shrink-0 items-center justify-between border-b border-border px-3.5",
+            isCollapsed && "justify-center"
+          )}
         >
           {!isCollapsed &&
             (headerHref ? (

@@ -1,40 +1,20 @@
 import type { HTMLAttributes, ReactNode } from "react";
-
-export type BadgeVariant =
-  | "default"
-  | "accent"
-  | "ok"
-  | "warn"
-  | "danger"
-  | "subtle";
+import { cn } from "../utils/cn";
+import { badgeClasses, type BadgeVariant } from "../classes";
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  /** Colour variant. Default "default". */
   variant?: BadgeVariant;
+  /** Badge text. */
   children: ReactNode;
+  /** Optional leading icon. */
   icon?: ReactNode;
 }
 
-const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-surface-subtle text-fg border border-border",
-  accent: "bg-accent-soft text-accent border border-accent/20",
-  ok: "bg-ok-soft text-ok border border-ok/20",
-  warn: "bg-warn-soft text-warn border border-warn/20",
-  danger: "bg-danger-soft text-danger border border-danger/20",
-  subtle: "bg-transparent text-muted border border-border/60",
-};
-
-export function Badge({
-  variant = "default",
-  icon,
-  className = "",
-  children,
-  ...props
-}: BadgeProps) {
+/** Small pill label. Use `badgeClasses()` to style other elements the same way. */
+export function Badge({ variant = "default", icon, className, children, ...props }: BadgeProps) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tracking-tight ${variantStyles[variant]} ${className}`}
-      {...props}
-    >
+    <span className={cn(badgeClasses({ variant }), className)} {...props}>
       {icon && <span className="shrink-0">{icon}</span>}
       <span>{children}</span>
     </span>

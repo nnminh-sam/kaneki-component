@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { cn } from "../utils/cn";
 
 export interface TooltipProps {
   content: ReactNode;
@@ -14,7 +15,7 @@ export function Tooltip({
   content,
   children,
   side = "top",
-  className = "",
+  className,
   delay = 100,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -49,7 +50,11 @@ export function Tooltip({
       {isVisible && (
         <div
           role="tooltip"
-          className={`absolute z-50 whitespace-nowrap rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-fg shadow-md transition-opacity pointer-events-none animate-in fade-in zoom-in-95 duration-150 ${positionClasses} ${className}`}
+          className={cn(
+            "absolute z-50 whitespace-nowrap rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-fg shadow-md transition-opacity pointer-events-none animate-in fade-in zoom-in-95 duration-150",
+            positionClasses,
+            className
+          )}
         >
           {content}
         </div>

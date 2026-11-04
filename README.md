@@ -4,50 +4,67 @@
 
 ## ✨ Features
 
-- **🎨 Unified Theming & WCAG AAA Contrast**: Built-in support for `light`, `dark`, and `system` themes with synchronized semantic tokens (`--accent-fg`, `--danger-fg`, etc.) guaranteeing accessible text contrast across all button and surface variants.
-- **📱 Collapsible Sidebar**: Responsive sidebar with pinned desktop mode, mobile drawer, and automatic floating tooltips on collapsed icon hover.
-- **🔘 Versatile Buttons**: Full variant suite (`primary`, `secondary`, `outline`, `ghost`, `danger`, `warn`, `success`), sizes (`xs`, `sm`, `md`, `lg`), and built-in async loading states.
-- **🔔 Toast Notification System**: Built-in `useToast()` hook with floating alert viewport (`success`, `error`, `warn`, `info`) and auto-dismiss.
-- **💬 Action Modal**: Ready-to-use `prompt`, `confirm`, and destructive alert modals with ESC dismiss and backdrop blur.
-- **📊 Enhanced Data Table**: Feature-complete table with status filter chips, multi-row checkbox selection, batch action bar, sorting, search, and pagination.
-- **🧩 Base Primitives**: Cards, Badges, Switch Toggles, Tooltips, Avatars, Dropdown Menus, Text Inputs, Textarea, Select, Tabs, Skeleton, and Loading Spinners.
-- **🚀 Vercel Deployable Demo**: Interactive preview page in `demo/` with live props playground and realistic dashboard deployable with zero configuration to Vercel.
-- **📦 Clean Package Distribution**: The published npm package only includes `dist/` — the preview app and demo source code are completely excluded.
+- **🎨 Theming**: `light` / `dark` / `system` themes driven by semantic tokens (`--bg`, `--surface`, `--fg`, `--muted`, `--border`, `--accent`, `--danger`, `--warn`, `--ok` and their `-soft` / `-fg` pairs), a `dark:` variant that follows the resolved theme, and a `ThemeScript` that prevents a flash of the wrong theme on server-rendered pages.
+- **🧩 Primitives**: Button (+ `IconButton`, danger-outline / danger-ghost / link variants, pill shape), Card, Badge, Avatar, Tooltip, Switch, Dropdown, Skeleton / spinners.
+- **📝 Forms**: Input / Textarea / Select with automatic label and `aria-describedby` / `aria-invalid` wiring, `Field` for custom controls, Checkbox, CheckboxChip, SegmentedControl, Chip / ChipGroup, ColorSwatchPicker, IconPicker, DayGridPicker, MiniCalendar, NumberStepper, PeriodSwitcher.
+- **🪟 Overlays**: Modal on native `<dialog>` (focus handling, close veto for unsaved changes, busy state, mobile bottom-sheet variant), ActionModal, `useConfirm()` promise dialogs, Popover, toasts.
+- **🧭 Layout & navigation**: AppHeader, PageHeader, Section, Container, TopNav / NavItem, mobile BottomNav, CollapsibleSidebar, accessible Tabs (roving keyboard, vertical rail, kept-mounted panels).
+- **📊 Data display**: Stat / StatGroup, DeltaBadge, Progress (marker, secondary bar), ProgressRing, SegmentBar, Alert / Callout, List / ListItem, DescriptionList, EmptyState, Table / DataTable.
+- **📈 Charts**: Line / Area, Bar, Donut, Heatmap grid, Sparkline, Pareto curve, with keyboard-navigable tooltips and screen-reader data tables.
+- **🪝 Hooks**: `useSwipe`, `useMediaQuery`, `usePrefersReducedMotion`, `useContainerWidth`, `useUnsavedChanges`.
+- **🚀 Demo**: interactive preview in `demo/`, deployable to Vercel.
+
+All navigation items and list rows accept a polymorphic `as` prop, so framework links (e.g. Next.js `<Link>`) plug in directly. Interactive components follow WAI-ARIA patterns and respect `prefers-reduced-motion`.
 
 ---
 
 ## 📥 Installation
 
+This package is not published to npm (the `kaneki-components` name there belongs to an unrelated package). Install it from this repository:
+
 ```bash
-npm install kaneki-components
-# or
-pnpm add kaneki-components
-# or
-yarn add kaneki-components
+# Build from a local checkout and install the packed tarball
+cd kaneki-component && npm install && npm pack --pack-destination ../my-app/vendor
+cd ../my-app && npm install ./vendor/kaneki-components-<version>.tgz
 ```
 
-### Peer Dependencies
-Ensure `react` and `react-dom` (v18 or v19) are installed in your project.
+Peer dependencies: `react` and `react-dom` 18 or 19.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Import Styles, ThemeProvider & ToastProvider
+### Option A — your app runs Tailwind v4 (recommended)
 
-In your application's root (e.g. Next.js `src/app/layout.tsx` or Vite `src/main.tsx`):
+One Tailwind build covers your app and the components, so you get a single preflight and can use the Kaneki tokens (`bg-surface`, `text-muted`, `border-border`, `bg-accent` …) in your own markup:
+
+```css
+/* app.css */
+@import "tailwindcss";
+@import "kaneki-components/tailwind.css";
+```
+
+### Option B — no Tailwind in your app
+
+Import the prebuilt stylesheet instead:
 
 ```tsx
 import "kaneki-components/styles.css";
-import { ThemeProvider, ToastProvider } from "kaneki-components";
+```
+
+### Providers and theme script
+
+```tsx
+import { ConfirmProvider, ThemeProvider, ThemeScript, ToastProvider } from "kaneki-components";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <ThemeProvider defaultTheme="system">
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-bg text-fg">
+        <ThemeScript storageKey="my_app_theme" />
+        <ThemeProvider storageKey="my_app_theme" defaultTheme="system">
           <ToastProvider>
-            {children}
+            <ConfirmProvider>{children}</ConfirmProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>
@@ -55,6 +72,94 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 }
 ```
+
+`ThemeProvider` and `ThemeScript` must share `storageKey`. The theme is applied as `data-theme` (`light` | `dark` | `system`) on `<html>`.
+
+---
+
+## 🧩 Components
+
+Everything below is exported from `kaneki-components`. Every component accepts `className`, merged last with `cn` (tailwind-merge), so your classes override the defaults.
+
+**Actions**
+- `Button` – primary / secondary / outline / ghost / danger / warn / success / link button; `as` renders it as a link or any component.
+- `SubmitButton` – `type="submit"` Button with a pending state.
+- `IconButton` – icon-only button with a required `label` (32 / 40 / 44px).
+- `Chip`, `ChipGroup` – toggle or action pills; single / multiple selection groups (sm / md / lg).
+- `SelectableTile` – card-like button for grids of choices or an "add new" tile (`aria-pressed` / `aria-expanded`).
+- `DropdownMenu`, `DropdownItem`, `DropdownSeparator` – simple action menu.
+
+**Forms**
+- `Field`, `Label`, `HelperText`, `Input`, `Select`, `Textarea` – labelled form controls with error / helper wiring.
+- `Checkbox`, `CheckboxChip` – checkbox and pill-style checkbox.
+- `Switch` – on / off toggle with label and description.
+- `SegmentedControl` – single choice with radio or toggle semantics (sm / md / lg).
+- `NumberStepper` – − / + stepper; `editable` turns the value into a numeric input.
+- `ColorSwatchPicker`, `IconPicker` – grid pickers for colours and icons.
+- `DayGridPicker`, `MiniCalendar` – day-of-month grid and compact month calendar.
+
+**Overlays & feedback**
+- `Modal`, `ActionModal` – native `<dialog>` modal (dialog or bottom sheet) and prompt / confirm / alert presets.
+- `ConfirmProvider` + `useConfirm()` – promise-based confirm dialogs.
+- `Popover`, `PopoverClose`, `usePopover()` – anchored, focus-managed popover.
+- `Tooltip` – hover / focus tooltip.
+- `ToastProvider` + `useToast()` – toast notifications.
+- `Alert`, `Callout` – inline status messages.
+- `Skeleton`, `LoadingBar`, `LoadingSpinner` – loading placeholders.
+- `EmptyState` – placeholder for views without data.
+
+**Data display**
+- `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter` – surfaces; `CardHeader` takes `icon` / `title` / `description` / `actions`.
+- `Badge` – small pill label.
+- `Avatar` – image with initials fallback, status dot and corner badge slot.
+- `Stat`, `StatGroup`, `DeltaBadge` – metrics (`<dl>`), responsive groups and % change badges.
+- `Progress`, `ProgressRing`, `SegmentBar` – linear, circular and segmented progress.
+- `List`, `ListItem` – rows with leading / trailing / actions, optionally interactive.
+- `DescriptionList`, `DescriptionItem` – term / value rows.
+- `Table` (+ `TableHeader`, `TableBody`, `TableFooter`, `TableRow`, `TableHead`, `TableCell`, `TableCaption`), `DataTable` – table primitives and a sortable, searchable, paginated table.
+
+**Navigation & layout**
+- `AppHeader` – sticky top bar with brand, nav, actions and a `secondary` row.
+- `TopNav`, `BottomNav`, `BottomNavItem`, `NavItem` – desktop and mobile navigation (polymorphic `as`).
+- `CollapsibleSidebar`, `SidebarNav`, `SidebarSection`, `SidebarItem` – collapsible sidebar with mobile drawer.
+- `Tabs`, `TabList`, `TabTrigger`, `TabContent` – pill / rail / underline tabs, horizontal or vertical (`mobileOrientation`).
+- `PeriodSwitcher` – "◀ period ▶" navigation with buttons or links (`prevHref` / `nextHref` / `linkAs`).
+- `Container`, `PageHeader`, `Section` – page layout.
+
+**Charts**
+- `LineChart`, `AreaChart`, `BarChart`, `DonutChart`, `HeatmapGrid`, `Sparkline`, `ParetoCurve` – SVG charts.
+- `ChartFrame`, `ChartAxisX`, `ChartAxisY`, `Legend`, `LegendItem`, `ChartTooltip` (+ `Row`, `Title`, `Note`) – building blocks for custom charts.
+
+**Theme, hooks & a11y**
+- `ThemeProvider`, `ThemeScript`, `ThemeToggle`, `useTheme()` – light / dark / system theme.
+- `useMediaQuery`, `usePrefersReducedMotion`, `useContainerWidth`, `useSwipe`, `useUnsavedChanges` – utility hooks.
+- `VisuallyHidden` – screen-reader-only content.
+
+### Styling links
+
+Links should not be wrapped in a `<button>`. Either render the Button as the link:
+
+```tsx
+import Link from "next/link";
+import { Button } from "kaneki-components";
+
+<Button as={Link} href="/expenses/new" variant="secondary">New expense</Button>
+```
+
+or, in a **server component** (the main bundle is `"use client"`), apply the classes directly:
+
+```tsx
+import Link from "next/link";
+import { buttonClasses } from "kaneki-components/classes";
+
+<Link href="/expenses/new" className={buttonClasses({ variant: "secondary", size: "sm" })}>
+  New expense
+</Link>
+```
+
+### `kaneki-components/classes`
+
+A second entry without the `"use client"` banner and without React, safe in server components. It exports `buttonClasses({ variant, size, shape, fullWidth })`, `iconButtonClasses({ variant, size, shape })`, `badgeClasses({ variant })`, `cardClasses()`, `focusRing` and `cn`. Button, IconButton, Badge and Card use the same helpers, so the styles cannot drift. The helpers are also exported from the main entry.
 
 ---
 

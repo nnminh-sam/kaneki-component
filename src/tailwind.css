@@ -1,0 +1,7 @@
+/* For apps with their own Tailwind v4 build:
+     @import "tailwindcss";
+     @import "kaneki-components/tailwind.css";
+   Adds the Kaneki tokens and scans the component classes, so the app's single
+   Tailwind build covers both the app and the components (one preflight). */
+@import "./tokens.css";
+@source "./";

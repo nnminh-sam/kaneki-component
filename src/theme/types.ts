@@ -6,6 +6,8 @@ export interface ThemeContextValue {
   resolvedTheme: "light" | "dark";
   setTheme: (theme: Theme) => void;
   cycleTheme: () => void;
+  /** Themes `cycleTheme` steps through, in order (excludes "system" when `enableSystem` is false). */
+  themes?: readonly Theme[];
 }
 
 export interface ThemeProviderProps {
@@ -15,4 +17,11 @@ export interface ThemeProviderProps {
   enableSystem?: boolean;
   attribute?: string;
   onThemeChange?: (theme: Theme) => void;
+}
+
+export interface ThemeScriptProps {
+  storageKey?: string;
+  defaultTheme?: Theme;
+  attribute?: string;
+  nonce?: string;
 }

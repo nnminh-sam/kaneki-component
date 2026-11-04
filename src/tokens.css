@@ -1,0 +1,149 @@
+/* Kaneki design tokens: Tailwind theme mapping + light/dark/system values.
+   Imported by styles.css (prebuilt bundle) and tailwind.css (for apps that run
+   their own Tailwind v4 build). Contains no preflight and no utilities. */
+
+/* `dark:` follows the resolved theme: data-theme="dark", or the OS setting when
+   the theme is "system" / unset. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where([data-theme="system"], [data-theme="system"] *, :root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-fg: var(--danger-fg);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-fg: var(--warn-fg);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-fg: var(--ok-fg);
+}
+
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface-subtle: #f1f0ec;
+  --fg: #1c1b19;
+  --muted: #74716b;
+  --border: #e6e4df;
+  --accent: #3f51d8;
+  --accent-soft: #eceffd;
+  --accent-fg: #ffffff;
+  --danger: #c3342b;
+  --danger-soft: #fcefed;
+  --danger-fg: #ffffff;
+  --warn: #9a6200;
+  --warn-soft: #fcf4e2;
+  --warn-fg: #ffffff;
+  --ok: #217a45;
+  --ok-soft: #e9f5ee;
+  --ok-fg: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #111110;
+  --surface: #191918;
+  --surface-subtle: #222220;
+  --fg: #ecebe7;
+  --muted: #9b988f;
+  --border: #2c2b28;
+  --accent: #8d9bff;
+  --accent-soft: #23264a;
+  --accent-fg: #0d0f1c; /* High contrast dark ink on pastel periwinkle */
+  --danger: #ff8b80;
+  --danger-soft: #3a1f1c;
+  --danger-fg: #1f0605; /* High contrast dark ink on pastel coral */
+  --warn: #f0c060;
+  --warn-soft: #36290f;
+  --warn-fg: #1c1401;   /* High contrast dark ink on pastel gold */
+  --ok: #7ad69c;
+  --ok-soft: #173123;
+  --ok-fg: #041409;     /* High contrast dark ink on pastel mint */
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :root[data-theme="system"] {
+    --bg: #111110;
+    --surface: #191918;
+    --surface-subtle: #222220;
+    --fg: #ecebe7;
+    --muted: #9b988f;
+    --border: #2c2b28;
+    --accent: #8d9bff;
+    --accent-soft: #23264a;
+    --accent-fg: #0d0f1c;
+    --danger: #ff8b80;
+    --danger-soft: #3a1f1c;
+    --danger-fg: #1f0605;
+    --warn: #f0c060;
+    --warn-soft: #36290f;
+    --warn-fg: #1c1401;
+    --ok: #7ad69c;
+    --ok-soft: #173123;
+    --ok-fg: #041409;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --animate-indeterminate: indeterminate 1.5s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+  --animate-pop-in: kaneki-pop-in 150ms ease-out;
+  --animate-fade-in: kaneki-fade-in 150ms ease-out;
+  --animate-sheet-up: kaneki-sheet-up 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes kaneki-pop-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes kaneki-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes kaneki-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop-in, .animate-fade-in, .animate-sheet-up { animation: none; }
+}
+
+/* Hide a scroll container's scrollbar while keeping it scrollable. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

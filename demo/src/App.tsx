@@ -75,6 +75,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { NewComponentsShowcase } from "./showcase/NewComponents";
 
 interface ProjectRecord {
   id: string;
@@ -245,6 +246,17 @@ export default function App() {
                   collapsed={collapsed}
                   onClick={() => {
                     setActiveTab("components");
+                    closeMobile();
+                  }}
+                />
+                <SidebarItem
+                  icon={<Sparkles className="h-4 w-4" />}
+                  label="New Components"
+                  badge="New"
+                  active={activeTab === "showcase"}
+                  collapsed={collapsed}
+                  onClick={() => {
+                    setActiveTab("showcase");
                     closeMobile();
                   }}
                 />
@@ -833,6 +845,8 @@ export default function App() {
             )}
 
             {/* NEW BASE COMPONENTS TAB */}
+            {activeTab === "showcase" && <NewComponentsShowcase />}
+
             {activeTab === "components" && (
               <div className="space-y-6">
                 <div>

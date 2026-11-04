@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
+import { cn } from "../utils/cn";
 
 export type ToastType = "default" | "success" | "error" | "warn" | "info";
 
@@ -135,11 +136,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={t.id}
               role="alert"
-              className={`pointer-events-auto flex items-start gap-3 rounded-xl border p-3.5 shadow-xl transition-all duration-200 bg-surface ${cfg.borderClass}`}
+              className={cn(
+                "pointer-events-auto flex items-start gap-3 rounded-xl border p-3.5 shadow-xl transition-all duration-200 bg-surface",
+                cfg.borderClass
+              )}
             >
               <div className="shrink-0 mt-0.5">{cfg.icon}</div>
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold ${cfg.textClass}`}>
+                <p className={cn("text-xs font-semibold", cfg.textClass)}>
                   {t.title}
                 </p>
                 {t.description && (

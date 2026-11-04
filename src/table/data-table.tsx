@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "./table";
+import { cn } from "../utils/cn";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -72,7 +73,7 @@ export function DataTable<T extends Record<string, any>>({
   emptyMessage = "No items found.",
   loading = false,
   onRowClick,
-  className = "",
+  className,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
@@ -178,7 +179,7 @@ export function DataTable<T extends Record<string, any>>({
     paginatedData.every((item) => selectedIds.has(item.id ?? item.key));
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={cn("space-y-3", className)}>
       {/* Top Filter & Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Filter Chips */}
@@ -190,11 +191,12 @@ export function DataTable<T extends Record<string, any>>({
                 setSelectedFilter("ALL");
                 setCurrentPage(1);
               }}
-              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+              className={cn(
+                "rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
                 selectedFilter === "ALL"
                   ? "bg-accent text-accent-fg font-semibold shadow-xs"
                   : "bg-surface-subtle text-muted hover:text-fg"
-              }`}
+              )}
             >
               All ({data.length})
             </button>
@@ -206,11 +208,12 @@ export function DataTable<T extends Record<string, any>>({
                   setSelectedFilter(opt.value);
                   setCurrentPage(1);
                 }}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                className={cn(
+                  "rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
                   selectedFilter === opt.value
                     ? "bg-accent text-accent-fg font-semibold shadow-xs"
                     : "bg-surface-subtle text-muted hover:text-fg"
-                }`}
+                )}
               >
                 {opt.label}
                 {opt.count !== undefined && (
@@ -291,7 +294,7 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={col.key}
                   style={{ width: col.width }}
-                  className={`${alignClass(col.align)} select-none`}
+                  className={cn(alignClass(col.align), "select-none")}
                 >
                   {col.sortable ? (
                     <button
@@ -356,9 +359,10 @@ export function DataTable<T extends Record<string, any>>({
                 <TableRow
                   key={rowId}
                   onClick={() => onRowClick?.(row)}
-                  className={`${isSelected ? "bg-accent-soft/30" : ""} ${
-                    onRowClick ? "cursor-pointer hover:bg-surface-subtle" : ""
-                  }`}
+                  className={cn(
+                    isSelected && "bg-accent-soft/30",
+                    onRowClick && "cursor-pointer hover:bg-surface-subtle"
+                  )}
                 >
                   {selectable && (
                     <TableCell
